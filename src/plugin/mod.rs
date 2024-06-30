@@ -23,6 +23,7 @@ mod plugin_pdo;
 mod plugin_predis;
 mod plugin_redis;
 mod plugin_swoole;
+mod pulgin_rdkafka;
 mod style;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
@@ -46,6 +47,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::<plugin_amqplib::AmqplibPlugin>::default(),
         Box::<plugin_mongodb::MongodbPlugin>::default(),
         Box::<plugin_memcache::MemcachePlugin>::default(),
+        Box::<pulgin_rdkafka::RdKafkaPlugin>::default(),
     ]
 });
 
@@ -64,8 +66,9 @@ pub trait Plugin {
 pub fn select_plugin_hook(
     class_name: Option<&str>, function_name: &str,
 ) -> Option<(&'static BeforeExecuteHook, &'static AfterExecuteHook)> {
+    eprintln!("mt|sss");
     type HookMap =
-        HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>;
+    HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>;
 
     static LOCK: Lazy<Mutex<()>> = Lazy::new(Default::default);
     static mut HOOK_MAP: Lazy<HookMap> = Lazy::new(HashMap::new);
@@ -93,6 +96,7 @@ fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'stat
     let mut selected_plugin = None;
 
     for plugin in &*PLUGINS {
+        eprintln!("my|ssss");
         if let Some(class_name) = class_name {
             if let Some(plugin_class_names) = plugin.class_names() {
                 if plugin_class_names.contains(&class_name) {
